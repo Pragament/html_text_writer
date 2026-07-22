@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebWord - Premium Table Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Premium Glass Theme */
+            --primary: #6366f1; /* Indigo */
+            --primary-light: #e0e7ff;
+            --primary-glow: rgba(99, 102, 241, 0.5);
+            --accent: #f43f5e; /* Rose */
+            --bg-app: #0f172a; /* Slate 900 */
+            --glass-bg: rgba(30, 41, 59, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --btn-hover: rgba(255, 255, 255, 0.1);
+            --btn-active: rgba(99, 102, 241, 0.2);
+            --page-bg: #ffffff;
+            --page-text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ----- STATUS BAR ----- */
+        .status-bar {
+            background: var(--bg-app);
+            border-top: 1px solid var(--glass-border);
+            padding: 4px 16px;
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        /* ----- CONTEXT MENU & MODALS ----- */
+        #context-menu {
+            position: absolute;
+            display: none;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 200;
+            padding: 8px 0;
+            min-width: 180px;
+        }
+        .cm-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-main);
+            transition: background 0.2s;
+        }
+        .cm-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+        }
+        .modal {
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--glass-border);
+            padding: 24px;
+            border-radius: 12px;
+            width: 320px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal h3 { margin-bottom: 16px; font-weight: 500; }
+        .modal-group { margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+        .modal-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px; }
+        .btn-primary { background: var(--primary); color: #fff; padding: 6px 16px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Outfit'; }
+        .btn-secondary { background: transparent; border: 1px solid var(--glass-border); color: #fff; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-family: 'Outfit'; }
+
+        /* AutoFormat Styles */
+        table.table-academic th { background-color: #f1f5f9; color: #0f172a; border-bottom: 2px solid #0f172a; font-weight: bold; }
+        table.table-academic td { border-bottom: 1px solid #cbd5e1; border-left: none; border-right: none; }
+        table.table-box-blue th { background-color: #3b82f6; color: white; border: 1px solid #2563eb; font-weight: bold; }
+        table.table-box-blue td { border: 1px solid #93c5fd; background-color: #eff6ff; color: #1e3a8a;}
+        table.table-elegant th { background-color: transparent; border-top: 2px solid #333; border-bottom: 2px solid #333; color: #333; font-weight: bold; }
+        table.table-elegant td { border: none; border-bottom: 1px solid #ddd; }
+        
+        table.table-box-green th { background-color: #22c55e; color: white; border: 1px solid #16a34a; font-weight: bold; }
+        table.table-box-green td { border: 1px solid #86efac; background-color: #f0fdf4; color: #14532d;}
+        table.table-box-red th { background-color: #ef4444; color: white; border: 1px solid #dc2626; font-weight: bold; }
+        table.table-box-red td { border: 1px solid #fca5a5; background-color: #fef2f2; color: #7f1d1d;}
+        table.table-box-yellow th { background-color: #eab308; color: white; border: 1px solid #ca8a04; font-weight: bold; }
+        table.table-box-yellow td { border: 1px solid #fde047; background-color: #fefce8; color: #713f12;}
+        table.table-financial th { border-bottom: 2px solid #000; font-weight: bold; text-align: left; }
+        table.table-financial td { border-bottom: 1px dashed #ccc; }
+        table.table-simple-cols td, table.table-simple-cols th { border-left: 1px solid #000; border-right: 1px solid #000; border-top: none; border-bottom: none; }
+        table.table-simple-rows td, table.table-simple-rows th { border-top: 1px solid #000; border-bottom: 1px solid #000; border-left: none; border-right: none; }
+        table.table-simple-list tr:nth-child(even) { background-color: #f1f5f9; }
+        table.table-simple-list td, table.table-simple-list th { border: none; }
+
+        /* AutoFormat Dialog Box Exact UI */
+        .af-modal {
+            width: 550px;
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 12px;
+        }
+        .af-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0078d7;
+            color: #fff;
+            padding: 4px 8px;
+            margin: -12px -12px 12px -12px;
+            border-radius: 4px 4px 0 0;
+            font-weight: bold;
+        }
+        .af-body {
+            display: flex;
+            gap: 12px;
+        }
+        .af-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .af-listbox {
+            height: 180px;
+            border: 1px solid #a0a0a0;
+            background: #fff;
+            overflow-y: auto;
+            padding: 2px;
+        }
+        .af-listbox-item {
+            padding: 2px 4px;
+            cursor: pointer;
+        }
+        .af-listbox-item:hover, .af-listbox-item.selected {
+            background: #0078d7;
+            color: #fff;
+        }
+        .af-center {
+            flex: 2;
+            border: 1px solid #a0a0a0;
+            background: #fff;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .af-right {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .af-btn {
+            width: 80px;
+            padding: 4px 0;
+            background: #e1e1e1;
+            border: 1px solid #adadad;
+            border-radius: 2px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .af-btn:hover {
+            background: #e5f1fb;
+            border-color: #0078d7;
+        }
+        .af-bottom {
+            margin-top: 12px;
+        }
+        .af-fieldset {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+        .af-legend {
+            font-weight: bold;
+            padding: 0 4px;
+        }
+        .af-checkboxes {
+            display: flex;
+            gap: 16px;
+        }
+
+
+        /* ----- GLASSMORPHISM RIBBON ----- */
+        .ribbon {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .ribbon-tabs {
+            display: flex;
+            padding: 0 20px;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tab {
+            padding: 8px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-muted);
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+            position: relative;
+            user-select: none;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 3px;
+            background: var(--primary);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tab.active {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.03);
+        }
+
+        .tab.active::after {
+            width: 100%;
+            box-shadow: 0 -2px 10px var(--primary-glow);
+        }
+
+        .tab:hover:not(.active) {
+            color: var(--text-main);
+            background: rgba(255,255,255,0.05);
+        }
+
+        .toolbar-group-container {
+            display: none;
+            padding: 12px 24px;
+            align-items: center;
+            gap: 20px;
+            min-height: 85px;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toolbar-group-container.active {
+            display: flex;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-right: 1px solid var(--glass-border);
+            padding-right: 20px;
+        }
+
+        .toolbar-group:last-child {
+            border-right: none;
+        }
+
+        .tool-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-width: 44px;
+            min-height: 44px;
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .tool-btn:active {
+            transform: translateY(0);
+        }
+
+        .tool-btn.active {
+            background: var(--btn-active);
+            border-color: rgba(99, 102, 241, 0.4);
+            color: #818cf8;
+        }
+
+        .tool-btn svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .tool-label {
+            font-size: 11px;
+            font-weight: 400;
+            opacity: 0.8;
+            letter-spacing: 0.3px;
+        }
+
+        /* Controls */
+        input[type="color"], select, input[type="number"] {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-family: 'Outfit';
+            font-size: 13px;
+            outline: none;
+            transition: all 0.2s;
+        }
+        
+        input[type="color"] {
+            padding: 2px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+        }
+
+        select:hover, input[type="number"]:hover {
+            border-color: var(--primary);
+        }
+
+        /* ----- EDITOR AREA ----- */
+        .editor-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 60px 40px;
+            display: flex;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        /* Custom Scrollbar */
+        .editor-container::-webkit-scrollbar {
+            width: 10px;
+        }
+        .editor-container::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        .editor-container::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+        }
+        .editor-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .page {
+            background-color: var(--page-bg);
+            color: var(--page-text);
+            width: 816px; 
+            min-height: 1056px;
+            padding: 96px;
+            border-radius: 8px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.1);
+            outline: none;
+            line-height: 1.6;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        /* Table Styles within Editor */
+        .page table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+            table-layout: fixed;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .page td, .page th {
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            min-width: 30px;
+            position: relative;
+            word-wrap: break-word;
+            transition: background-color 0.2s;
+        }
+        
+        .page td.selected, .page th.selected {
+            background-color: var(--primary-light) !important;
+            outline: 2px solid var(--primary);
+            outline-offset: -2px;
+            z-index: 2;
+        }
+
+        /* Grid UI for inserting table */
+        .insert-table-grid {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1);
+            display: none;
+            z-index: 100;
+            flex-direction: column;
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes popIn {
+            from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .insert-table-grid.show {
+            display: flex;
+        }
+        
+        .grid-row {
+            display: flex;
+        }
+        
+        .grid-cell {
+            width: 20px;
+            height: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+            margin: 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        
+        .grid-cell.highlight {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 8px var(--primary-glow);
+            transform: scale(1.1);
+            z-index: 2;
+        }
+        
+        .grid-status {
+            font-size: 13px;
+            text-align: center;
+            margin-top: 12px;
+            font-weight: 500;
+            color: var(--primary-light);
+        }
+        /* ----- CLASSIC MENU IN RIBBON ----- */
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            min-width: 220px;
+            z-index: 1001;
+            padding: 4px 0;
+            font-weight: normal;
+            text-align: left;
+            text-transform: none;
+        }
+        .tab:hover .menu-dropdown {
+            display: block;
+        }
+        .menu-subitem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 16px;
+            color: #dfdfdf;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        .menu-subitem:hover {
+            background: #c94a38; /* dark orange/red selection color */
+            color: #fff;
+        }
+        .menu-subitem.parent {
+            position: relative;
+        }
+        .menu-submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            min-width: 140px;
+            z-index: 1002;
+            padding: 4px 0;
+        }
+        .menu-subitem.parent:hover > .menu-submenu {
+            display: block;
+        }
+        .menu-shortcut {
+            font-size: 11px;
+            color: #888;
+            margin-left: 20px;
+        }
+        .menu-subitem:hover .menu-shortcut {
+            color: #fff;
+        }
+        .menu-divider {
+            height: 1px;
+            background: #444;
+            margin: 4px 0;
+        }
+
+        /* ----- FORMULA BAR ----- */
+        .formula-bar {
+            background: #f8f9fa;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            padding: 4px 10px;
+            gap: 10px;
+        }
+        .formula-cell-indicator {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 4px 8px;
+            min-width: 40px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+            font-weight: bold;
+        }
+        .formula-fx {
+            font-family: serif;
+            font-style: italic;
+            color: #666;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .formula-input {
+            flex-grow: 1;
+            border: 1px solid #ccc;
+            padding: 4px 8px;
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            background: #fff;
+        }
+        .formula-input:focus {
+            border-color: #999;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="ribbon">
+        <div class="ribbon-tabs">
+            <div class="tab active" data-target="home">Home</div>
+            <div class="tab" data-target="insert">Insert</div>
+            
+            <!-- Table Menu Tab (Merged from Classic Menu) -->
+            <div class="tab" style="position: relative; overflow: visible;">Table
+                <div class="menu-dropdown">
+                    <div class="menu-subitem" onclick="showModal('insert-table-dialog')">
+                        <span>Insert Table...</span>
+                        <span class="menu-shortcut">Ctrl+F12</span>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-subitem parent">
+                        <span>Insert</span>
+                        <span class="arrow">▸</span>
+                        <div class="menu-submenu">
+                            <div class="menu-subitem" onclick="showInsertColRowDialog('Row')">Rows...</div>
+                            <div class="menu-subitem" onclick="showInsertColRowDialog('Column')">Columns...</div>
+                        </div>
+                    </div>
+                    <div class="menu-subitem parent">
+                        <span>Delete</span>
+                        <span class="arrow">▸</span>
+                        <div class="menu-submenu">
+                            <div class="menu-subitem" onclick="deleteRow()">Rows</div>
+                            <div class="menu-subitem" onclick="deleteCol()">Columns</div>
+                            <div class="menu-subitem" onclick="deleteTable()">Table</div>
+                        </div>
+                    </div>
+                    <div class="menu-subitem parent">
+                        <span>Select</span>
+                        <span class="arrow">▸</span>
+                        <div class="menu-submenu">
+                            <div class="menu-subitem" onclick="setupTableInteractions()">Cell</div>
+                            <div class="menu-subitem" onclick="selectRow()">Row</div>
+                            <div class="menu-subitem" onclick="selectCol()">Column</div>
+                            <div class="menu-subitem" onclick="selectAllTable()">Table</div>
+                        </div>
+                    </div>
+                    <div class="menu-subitem parent">
+                        <span>Size</span>
+                        <span class="arrow">▸</span>
+                        <div class="menu-submenu">
+                            <div class="menu-subitem" onclick="promptRowHeight()">Row Height...</div>
+                            <div class="menu-subitem" onclick="promptColWidth()">Column Width...</div>
+                        </div>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-subitem" onclick="showModal('autoformat-dialog')">
+                        <span>AutoFormat Styles...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab">Form</div>
+            <div class="tab">Tools</div>
+            <div class="tab">Window</div>
+            <div class="tab">Help</div>
+
+            <div class="tab" data-target="table-design" style="display:none;" id="tab-table-design">Table Design</div>
+            <div class="tab" data-target="layout" style="display:none;" id="tab-layout">Layout</div>
+        </div>
+
+        <!-- Home Tab -->
+        <div class="toolbar-group-container active" id="home">
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="saveDocument()" title="Save">
+                    <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="formatDoc('undo')" title="Undo">
+                    <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.76 10.63 17.02 8 12.5 8z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('redo')" title="Redo">
+                    <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 2.71-9.96 6.74l2.37.78C4.85 12.31 7.86 10 11.5 10c1.96 0 3.73.72 5.12 1.88L13 15.5h9v-9l-3.6 3.1z"/></svg>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <select id="font-family" onchange="formatDoc('fontName', this.value)" title="Font Family" style="width: 100px;">
+                    <option value="Outfit">Outfit</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Courier New">Courier</option>
+                </select>
+                <select id="font-size" onchange="formatDoc('fontSize', this.value)" title="Font Size" style="width: 70px;">
+                    <option value="1">10px</option>
+                    <option value="2">13px</option>
+                    <option value="3" selected>16px</option>
+                    <option value="4">18px</option>
+                    <option value="5">24px</option>
+                    <option value="6">32px</option>
+                    <option value="7">48px</option>
+                </select>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="formatDoc('bold')" title="Bold">
+                    <svg viewBox="0 0 24 24"><path d="M15.6 10.79c.97-.67 1.65-1.77 1.65-2.79 0-2.26-1.75-4-4-4H7v14h7.04c2.09 0 3.71-1.7 3.71-3.79 0-1.52-.86-2.82-2.15-3.42zM10 6.5h3c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5h-3v-3zm3.5 9H10v-3h3.5c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('italic')" title="Italic">
+                    <svg viewBox="0 0 24 24"><path d="M10 4v3h2.21l-3.42 8H6v3h8v-3h-2.21l3.42-8H18V4z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('underline')" title="Underline">
+                    <svg viewBox="0 0 24 24"><path d="M12 17c3.31 0 6-2.69 6-6V3h-2.5v8c0 1.93-1.57 3.5-3.5 3.5S8.5 12.93 8.5 11V3H6v8c0 3.31 2.69 6 6 6zm-7 2v2h14v-2H5z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('strikeThrough')" title="Strikethrough">
+                    <svg viewBox="0 0 24 24"><path d="M10 19h4v-3h-4v3zM5 4v3h5v3h4V7h5V4H5zM3 14h18v-2H3v2z"/></svg>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                    <span class="tool-label" style="margin-top: 0; font-size: 10px;">Color</span>
+                    <input type="color" onchange="formatDoc('foreColor', this.value)" title="Text Color" value="#1e293b">
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 2px;">
+                    <span class="tool-label" style="margin-top: 0; font-size: 10px;">Highlight</span>
+                    <input type="color" onchange="formatDoc('hiliteColor', this.value)" title="Highlight Color" value="#ffff00">
+                </div>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="formatDoc('justifyLeft')" title="Align Left">
+                    <svg viewBox="0 0 24 24"><path d="M15 15H3v2h12v-2zm0-8H3v2h12V7zM3 13h18v-2H3v2zm0 8h18v-2H3v2zM3 3v2h18V3H3z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('justifyCenter')" title="Align Center">
+                    <svg viewBox="0 0 24 24"><path d="M7 15v2h10v-2H7zm-4 6h18v-2H3v2zm0-8h18v-2H3v2zm4-6v2h10V7H7zM3 3v2h18V3H3z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('justifyRight')" title="Align Right">
+                    <svg viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zm6-4h12v-2H9v2zm-6-4h18v-2H3v2zm6-4h12V7H9v2zM3 3v2h18V3H3z"/></svg>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="formatDoc('insertUnorderedList')" title="Bullet List">
+                    <svg viewBox="0 0 24 24"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5zm0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5zM7 19h14v-2H7v2zm0-6h14v-2H7v2zm0-8v2h14V5H7z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('insertOrderedList')" title="Numbered List">
+                    <svg viewBox="0 0 24 24"><path d="M2 17h2v.5H3v1h1v.5H2v1h3v-4H2v1zm1-9h1V4H2v1h1v3zm-1 3h1.8L2 13.1v.9h3v-1H3.2L5 10.9V10H2v1zm5-6v2h14V5H7zm0 14h14v-2H7v2zm0-6h14v-2H7v2z"/></svg>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="formatDoc('indent')" title="Increase Indent">
+                    <svg viewBox="0 0 24 24"><path d="M3 21h18v-2H3v2zM3 8v8l4-4-4-4zm8 9h10v-2H11v2zM3 3v2h18V3H3zm8 6h10V7H11v2zm0 4h10v-2H11v2z"/></svg>
+                </button>
+                <button class="tool-btn" onclick="formatDoc('outdent')" title="Decrease Indent">
+                    <svg viewBox="0 0 24 24"><path d="M11 21h10v-2H11v2zm0-4h10v-2H11v2zm0-12v2h10V5H11zM3 3v2h18V3H3zm0 5h18v-2H3v2zm4 8l4-4-4-4v8z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Insert Tab -->
+        <div class="toolbar-group-container" id="insert">
+            <div class="toolbar-group">
+                <div style="position: relative;">
+                    <button class="tool-btn" id="btn-insert-table" onclick="toggleTableGrid(event)">
+                        <svg viewBox="0 0 24 24"><path d="M20 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h15c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 2v3H5V5h15zm-5 14h-5v-9h5v9zM5 10h3v9H5v-9zm10 9v-9h5v9h-5z"/></svg>
+                        <span class="tool-label">Table</span>
+                    </button>
+                    <div class="insert-table-grid" id="table-grid">
+                        <div id="grid-container"></div>
+                        <div class="grid-status" id="grid-status">0 x 0 Table</div>
+                        <div style="border-top: 1px solid var(--glass-border); margin-top: 12px; padding-top: 12px; text-align: center;">
+                            <button class="btn-secondary" style="font-size: 12px; padding: 4px 12px;" onclick="showModal('insert-table-dialog')">More Options...</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Design Tab -->
+        <div class="toolbar-group-container" id="table-design">
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="showModal('autoformat-dialog')">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 19V5h14v14H5zm11-4h-2v-4h2v4zm-4 0h-2v-4h2v4zm-4 0H6v-4h2v4zm8-6H6V7h10v2z"/></svg>
+                    <span class="tool-label">AutoFormat</span>
+                </button>
+            </div>
+            <div class="toolbar-group">
+                <input type="color" id="cell-bg-color" onchange="applyShading(this.value)" title="Shading">
+                <span class="tool-label">Shading</span>
+            </div>
+            <div class="toolbar-group">
+                <select id="border-style" onchange="applyBorder()">
+                    <option value="solid">Solid</option>
+                    <option value="dashed">Dashed</option>
+                    <option value="dotted">Dotted</option>
+                    <option value="none">None</option>
+                </select>
+                <input type="number" id="border-width" value="1" min="1" max="10" onchange="applyBorder()" style="width: 50px"> <span style="font-size: 13px; opacity: 0.8;">px</span>
+                <input type="color" id="border-color" onchange="applyBorder()">
+            </div>
+        </div>
+
+        <!-- Layout Tab -->
+        <div class="toolbar-group-container" id="layout">
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="insertRow('above')"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="tool-label">Row Above</span></button>
+                <button class="tool-btn" onclick="insertRow('below')"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="tool-label">Row Below</span></button>
+                <button class="tool-btn" onclick="insertCol('left')"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="tool-label">Col Left</span></button>
+                <button class="tool-btn" onclick="insertCol('right')"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg><span class="tool-label">Col Right</span></button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="deleteRow()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg><span class="tool-label">Del Row</span></button>
+                <button class="tool-btn" onclick="deleteCol()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg><span class="tool-label">Del Col</span></button>
+                <button class="tool-btn" onclick="deleteTable()"><svg viewBox="0 0 24 24"><path d="M14.59 8L12 10.59 9.41 8 8 9.41 10.59 12 8 14.59 9.41 16 12 13.41 14.59 16 16 14.59 13.41 12 16 9.41 14.59 8zM12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg><span class="tool-label">Del Table</span></button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="mergeCells()"><svg viewBox="0 0 24 24"><path d="M17 15h2V9h-2v6zM7 9h2v6H7V9zm12-4H5c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 12H5V7h14v10zM11 11h2v2h-2z"/></svg><span class="tool-label">Merge</span></button>
+                <button class="tool-btn" onclick="splitCells()"><svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 7h10v2H7V7zm0 4h10v2H7v-2zm0 4h10v2H7v-2z"/></svg><span class="tool-label">Split</span></button>
+            </div>
+            <div class="toolbar-group">
+                <button class="tool-btn" onclick="insertFormula('SUM')"><svg viewBox="0 0 24 24"><path d="M18 4H6v2l6.5 6L6 18v2h12v-3h-7l5-5-5-5h7V4z"/></svg><span class="tool-label">Sum</span></button>
+                <button class="tool-btn" onclick="insertFormula('AVERAGE')"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg><span class="tool-label">Avg</span></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="formula-bar">
+        <div class="formula-cell-indicator" id="formula-cell-indicator">A1</div>
+        <div class="formula-fx">fx</div>
+        <input type="text" class="formula-input" id="formula-input" placeholder="Type formula e.g. =sum<C2:F2>" onkeydown="handleFormulaInput(event)">
+    </div>
+
+    <div class="editor-container" onclick="hideAllPopups()">
+        <div class="page" id="editor" contenteditable="true">
+            <h1>Business Proposal</h1>
+            <p>Welcome to our modern proposal document. Please insert your tables and data below.</p>
+            <p><br></p>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <div class="cm-item" onclick="showInsertColRowDialog('Row')">Insert Row...</div>
+        <div class="cm-item" onclick="showInsertColRowDialog('Column')">Insert Column...</div>
+        <div style="border-top: 1px solid var(--glass-border); margin: 4px 0;"></div>
+        <div class="cm-item" onclick="deleteRow()">Delete Row</div>
+        <div class="cm-item" onclick="deleteCol()">Delete Column</div>
+        <div class="cm-item" onclick="deleteTable()">Delete Table</div>
+        <div style="border-top: 1px solid var(--glass-border); margin: 4px 0;"></div>
+        <div class="cm-item" onclick="mergeCells()">Merge Cells</div>
+        <div class="cm-item" onclick="splitCells()">Split Cells</div>
+    </div>
+
+    <!-- Insert Table Dialog -->
+    <div class="modal-overlay" id="insert-table-dialog">
+        <div class="modal">
+            <h3>Insert Table</h3>
+            <div class="modal-group">
+                <label>Columns:</label>
+                <input type="number" id="dlg-cols" value="2" min="1" max="20" style="width: 80px">
+            </div>
+            <div class="modal-group">
+                <label>Rows:</label>
+                <input type="number" id="dlg-rows" value="2" min="1" max="20" style="width: 80px">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('insert-table-dialog')">Cancel</button>
+                <button class="btn-primary" onclick="confirmInsertTable()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert Columns/Rows Dialog -->
+    <div class="modal-overlay" id="insert-col-row-dialog">
+        <div class="modal">
+            <h3 id="icr-title">Insert</h3>
+            <div class="modal-group">
+                <label>Number:</label>
+                <input type="number" id="icr-number" value="1" min="1" max="20" style="width: 80px">
+            </div>
+            <div class="modal-group" style="align-items: flex-start; flex-direction: column;">
+                <label style="margin-bottom: 8px;">Position:</label>
+                <div><input type="radio" name="icr-pos" value="before" id="pos-before" checked> <label for="pos-before">Before</label></div>
+                <div><input type="radio" name="icr-pos" value="after" id="pos-after"> <label for="pos-after">After</label></div>
+            </div>
+            <input type="hidden" id="icr-type" value="">
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('insert-col-row-dialog')">Cancel</button>
+                <button class="btn-primary" onclick="confirmInsertColRow()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AutoFormat Dialog -->
+    <div class="modal-overlay" id="autoformat-dialog">
+        <div class="af-modal">
+            <div class="af-header">
+                <span>AutoFormat</span>
+                <span style="cursor:pointer;" onclick="closeModal('autoformat-dialog')">✖</span>
+            </div>
+            <div class="af-body">
+                <div class="af-left">
+                    <span style="font-weight:bold; margin-bottom: 4px;">Format</span>
+                    <div class="af-listbox" id="af-listbox">
+                        <div class="af-listbox-item selected" onclick="selectAF('word-table', this)">Default Style</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-academic', this)">Academic</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-box-blue', this)">Box List Blue</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-box-green', this)">Box List Green</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-box-red', this)">Box List Red</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-box-yellow', this)">Box List Yellow</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-elegant', this)">Elegant</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-financial', this)">Financial</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-simple-cols', this)">Simple Grid Columns</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-simple-rows', this)">Simple Grid Rows</div>
+                        <div class="af-listbox-item" onclick="selectAF('table-simple-list', this)">Simple List Shaded</div>
+                    </div>
+                </div>
+                <div class="af-center">
+                    <table id="af-preview-table" class="word-table" style="width: 100%; text-align: center; border-collapse: collapse; color: #333; font-size: 10px;">
+                        <thead>
+                            <tr><th></th><th>Jan</th><th>Feb</th><th>Mar</th><th>Sum</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><th>North</th><td>6</td><td>7</td><td>8</td><td>21</td></tr>
+                            <tr><th>Mid</th><td>11</td><td>12</td><td>13</td><td>36</td></tr>
+                            <tr><th>South</th><td>16</td><td>17</td><td>18</td><td>51</td></tr>
+                            <tr><th>Sum</th><td>33</td><td>36</td><td>39</td><td>108</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="af-right">
+                    <button class="af-btn" onclick="confirmAutoFormat()">OK</button>
+                    <button class="af-btn" onclick="closeModal('autoformat-dialog')">Cancel</button>
+                    <button class="af-btn">Help</button>
+                    <div style="height: 10px;"></div>
+                    <button class="af-btn">Add</button>
+                    <button class="af-btn">Delete</button>
+                    <button class="af-btn">Rename</button>
+                </div>
+            </div>
+            <div class="af-bottom">
+                <fieldset class="af-fieldset">
+                    <legend class="af-legend">Formatting</legend>
+                    <div class="af-checkboxes">
+                        <label><input type="checkbox" checked> Number format</label>
+                        <label><input type="checkbox" checked> Font</label>
+                        <label><input type="checkbox" checked> Alignment</label>
+                        <label><input type="checkbox" checked> Borders</label>
+                        <label><input type="checkbox" checked> Pattern</label>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab Switching Logic
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                if (!tab.dataset.target) return; // Ignore menu dropdown tabs
+                
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.toolbar-group-container').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.target).classList.add('active');
+            });
+        });
+
+        // Basic Text Formatting
+        function formatDoc(command, value = null) {
+            document.execCommand(command, false, value);
+            document.getElementById('editor').focus();
+        }
+
+        function saveDocument() {
+            const html = document.getElementById('editor').innerHTML;
+            const docStart = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>WebWord Document</title></' + 'head><body style="font-family: sans-serif;">';
+            const docEnd = '</' + 'body></' + 'html>';
+            const blob = new Blob([docStart + html + docEnd], {type: "text/html;charset=utf-8"});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "Document.html";
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function hideAllPopups() {
+            document.getElementById('table-grid').classList.remove('show');
+        }
+
+        // Table Grid Insertion UI
+        const gridContainer = document.getElementById('grid-container');
+        const gridStatus = document.getElementById('grid-status');
+        const maxRows = 10;
+        const maxCols = 10;
+
+        for (let r = 0; r < maxRows; r++) {
+            const row = document.createElement('div');
+            row.className = 'grid-row';
+            for (let c = 0; c < maxCols; c++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.row = r + 1;
+                cell.dataset.col = c + 1;
+                
+                cell.addEventListener('mouseover', (e) => highlightGrid(e.target.dataset.row, e.target.dataset.col));
+                cell.addEventListener('click', (e) => insertTable(e.target.dataset.row, e.target.dataset.col));
+                row.appendChild(cell);
+            }
+            gridContainer.appendChild(row);
+        }
+
+        function toggleTableGrid(event) {
+            event.stopPropagation();
+            document.getElementById('table-grid').classList.toggle('show');
+        }
+
+        function highlightGrid(rows, cols) {
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                if (cell.dataset.row <= rows && cell.dataset.col <= cols) {
+                    cell.classList.add('highlight');
+                } else {
+                    cell.classList.remove('highlight');
+                }
+            });
+            gridStatus.innerText = `${cols} x ${rows} Table`;
+        }
+
+        function insertTable(rows, cols) {
+            let html = '<table class="word-table"><tbody>';
+            for (let r = 0; r < rows; r++) {
+                html += '<tr>';
+                for (let c = 0; c < cols; c++) {
+                    html += '<td><br></td>';
+                }
+                html += '</tr>';
+            }
+            html += '</tbody></table><p><br></p>';
+            
+            document.getElementById('editor').focus();
+            document.execCommand('insertHTML', false, html);
+            hideAllPopups();
+            setupTableInteractions();
+        }
+        
+        let activeTable = null;
+        let selectedCells = [];
+
+        function setupTableInteractions() {
+            const tables = document.querySelectorAll('.page table');
+            tables.forEach(table => {
+                table.removeEventListener('click', tableClickHandler);
+                table.addEventListener('click', tableClickHandler);
+            });
+        }
+
+        // Setup MutationObserver to watch for new tables in the editor
+        const observer = new MutationObserver((mutations) => {
+            setupTableInteractions();
+        });
+        observer.observe(document.getElementById('editor'), { childList: true, subtree: true });
+
+        // Update selected cell text dynamically as user types in formula input
+        document.getElementById('formula-input').addEventListener('input', (e) => {
+            if (activeTable && selectedCells.length === 1) {
+                selectedCells[0].innerText = e.target.value;
+            }
+        });
+
+        // Mirror cell text edits to formula bar dynamically
+        document.getElementById('editor').addEventListener('input', (e) => {
+            if (activeTable && selectedCells.length === 1) {
+                const cell = selectedCells[0];
+                document.getElementById('formula-input').value = cell.innerText;
+            }
+        });
+
+        // Run initially
+        setupTableInteractions();
+        
+        function tableClickHandler(e) {
+            if (e.target.tagName === 'TD' || e.target.tagName === 'TH') {
+                activeTable = e.target.closest('table');
+                document.getElementById('tab-table-design').style.display = 'block';
+                document.getElementById('tab-layout').style.display = 'block';
+                
+                let colLetter = String.fromCharCode(65 + getCellIndex(e.target));
+                let rowNum = e.target.closest('tr').rowIndex + 1;
+                let cellRef = `${colLetter}${rowNum}`;
+                document.getElementById('status-cell').innerText = `Cell: ${cellRef}`;
+                document.getElementById('formula-cell-indicator').innerText = cellRef;
+                document.getElementById('formula-input').value = e.target.innerText;
+                
+                if (e.shiftKey) {
+                    e.target.classList.add('selected');
+                    if (!selectedCells.includes(e.target)) {
+                        selectedCells.push(e.target);
+                    }
+                } else {
+                    document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    selectedCells = [e.target];
+                }
+            }
+        }
+        
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('table') && 
+                !e.target.closest('.ribbon') && 
+                !e.target.closest('.insert-table-grid') && 
+                !e.target.closest('.formula-bar') && 
+                !e.target.closest('.modal-overlay') && 
+                !e.target.closest('#context-menu') && 
+                !e.target.closest('.classic-menu')) {
+                document.getElementById('tab-table-design').style.display = 'none';
+                document.getElementById('tab-layout').style.display = 'none';
+                document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+                document.getElementById('status-cell').innerText = 'Cell: None';
+                document.getElementById('formula-cell-indicator').innerText = '';
+                document.getElementById('formula-input').value = '';
+                activeTable = null;
+                selectedCells = [];
+            }
+        });
+
+        // Table Modification Functions
+        function getCellIndex(cell) {
+            return Array.from(cell.parentElement.children).indexOf(cell);
+        }
+
+        function insertRow(position) {
+            if (!activeTable || selectedCells.length === 0) return;
+            const targetCell = selectedCells[0];
+            const targetRow = targetCell.closest('tr');
+            const newRow = activeTable.insertRow(position === 'above' ? targetRow.rowIndex : targetRow.rowIndex + 1);
+            
+            for (let i = 0; i < targetRow.cells.length; i++) {
+                const newCell = newRow.insertCell();
+                newCell.innerHTML = '<br>';
+            }
+        }
+
+        function insertCol(position) {
+            if (!activeTable || selectedCells.length === 0) return;
+            const targetCell = selectedCells[0];
+            const colIndex = getCellIndex(targetCell);
+            
+            Array.from(activeTable.rows).forEach(row => {
+                const newCell = row.insertCell(position === 'left' ? colIndex : colIndex + 1);
+                newCell.innerHTML = '<br>';
+            });
+        }
+
+        function deleteRow() {
+            if (!activeTable || selectedCells.length === 0) return;
+            const targetCell = selectedCells[0];
+            const targetRow = targetCell.closest('tr');
+            activeTable.deleteRow(targetRow.rowIndex);
+            if (activeTable.rows.length === 0) deleteTable();
+        }
+
+        function deleteCol() {
+            if (!activeTable || selectedCells.length === 0) return;
+            const targetCell = selectedCells[0];
+            const colIndex = getCellIndex(targetCell);
+            
+            Array.from(activeTable.rows).forEach(row => {
+                if (row.cells[colIndex]) row.deleteCell(colIndex);
+            });
+
+            if (activeTable.rows[0] && activeTable.rows[0].cells.length === 0) deleteTable();
+        }
+
+        function deleteTable() {
+            if (activeTable) {
+                activeTable.remove();
+                activeTable = null;
+                selectedCells = [];
+                document.getElementById('tab-table-design').style.display = 'none';
+                document.getElementById('tab-layout').style.display = 'none';
+            }
+        }
+
+        function applyShading(color) {
+            selectedCells.forEach(cell => {
+                cell.style.backgroundColor = color;
+            });
+        }
+
+        function applyBorder() {
+            const style = document.getElementById('border-style').value;
+            const width = document.getElementById('border-width').value + 'px';
+            const color = document.getElementById('border-color').value;
+            
+            const borderValue = style === 'none' ? 'none' : `${width} ${style} ${color}`;
+            selectedCells.forEach(cell => {
+                cell.style.border = borderValue;
+            });
+        }
+
+        function mergeCells() {
+            if (!activeTable || selectedCells.length < 2) {
+                alert("Please select multiple cells by holding Shift while clicking.");
+                return;
+            }
+            
+            const firstRow = selectedCells[0].closest('tr');
+            const allSameRow = selectedCells.every(c => c.closest('tr') === firstRow);
+            
+            if (allSameRow) {
+                selectedCells.sort((a, b) => getCellIndex(a) - getCellIndex(b));
+                const firstCell = selectedCells[0];
+                let colspan = firstCell.colSpan;
+                
+                for (let i = 1; i < selectedCells.length; i++) {
+                    colspan += selectedCells[i].colSpan;
+                    firstCell.innerHTML += ' ' + selectedCells[i].innerHTML;
+                    selectedCells[i].remove();
+                }
+                firstCell.colSpan = colspan;
+                selectedCells = [firstCell];
+                document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+                firstCell.classList.add('selected');
+            } else {
+                alert("Merging currently supports cells in the same row.");
+            }
+        }
+
+        function splitCells() {
+            if (!activeTable || selectedCells.length !== 1) return;
+            const targetCell = selectedCells[0];
+            
+            if (targetCell.colSpan > 1) {
+                const row = targetCell.closest('tr');
+                const colIndex = getCellIndex(targetCell);
+                
+                for (let i = 1; i < targetCell.colSpan; i++) {
+                    const newCell = row.insertCell(colIndex + i);
+                    newCell.innerHTML = '<br>';
+                }
+                targetCell.colSpan = 1;
+            } else {
+                alert("This cell is not merged.");
+            }
+        }
+
+        function insertFormula(formula) {
+            if (!activeTable || selectedCells.length !== 1) return;
+            const targetCell = selectedCells[0];
+            const targetRow = targetCell.closest('tr');
+            const colIndex = getCellIndex(targetCell);
+            
+            let sum = 0;
+            let count = 0;
+            
+            // Writer default behavior: sum row left if there are numbers left, else sum col above
+            let hasNumbersLeft = false;
+            if (colIndex > 0) {
+                const leftVal = parseFloat(targetRow.cells[colIndex - 1].innerText);
+                if (!isNaN(leftVal)) hasNumbersLeft = true;
+            }
+
+            if (hasNumbersLeft) {
+                // Sum row to the left
+                for (let c = 0; c < colIndex; c++) {
+                    const val = parseFloat(targetRow.cells[c].innerText);
+                    if (!isNaN(val)) {
+                        sum += val;
+                        count++;
+                    }
+                }
+            } else {
+                // Sum column above
+                for (let r = 0; r < targetRow.rowIndex; r++) {
+                    if (activeTable.rows[r].cells[colIndex]) {
+                        const val = parseFloat(activeTable.rows[r].cells[colIndex].innerText);
+                        if (!isNaN(val)) {
+                            sum += val;
+                            count++;
+                        }
+                    }
+                }
+            }
+            
+            if (formula.includes('SUM')) {
+                targetCell.innerText = sum;
+            } else if (formula.includes('AVERAGE')) {
+                targetCell.innerText = count > 0 ? (sum / count).toFixed(2) : 0;
+            }
+        }
+
+        function evaluateFormula(input, targetCell) {
+            if (!activeTable) return false;
+            if (input.toLowerCase().startsWith('=sum<')) {
+                // Match =sum<C2:F2>
+                const match = input.match(/=sum<([A-Z])(\d+):([A-Z])(\d+)>/i);
+                if (match) {
+                    const startCol = match[1].toUpperCase().charCodeAt(0) - 65;
+                    const startRow = parseInt(match[2]) - 1;
+                    const endCol = match[3].toUpperCase().charCodeAt(0) - 65;
+                    const endRow = parseInt(match[4]) - 1;
+                    
+                    let sum = 0;
+                    for (let r = startRow; r <= endRow; r++) {
+                        if (activeTable.rows[r]) {
+                            for (let c = startCol; c <= endCol; c++) {
+                                if (activeTable.rows[r].cells[c] && activeTable.rows[r].cells[c] !== targetCell) {
+                                    const val = parseFloat(activeTable.rows[r].cells[c].innerText);
+                                    if (!isNaN(val)) sum += val;
+                                }
+                            }
+                        }
+                    }
+                    targetCell.innerText = sum;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function handleFormulaInput(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const input = e.target.value;
+                if (!activeTable || selectedCells.length !== 1) return;
+                const targetCell = selectedCells[0];
+                
+                const isFormula = evaluateFormula(input, targetCell);
+                if (!isFormula) {
+                    targetCell.innerText = input;
+                }
+                e.target.blur();
+                document.getElementById('editor').focus();
+            }
+        }
+
+        // --- Modal Logic ---
+        function showModal(id) {
+            hideAllPopups();
+            document.getElementById(id).style.display = 'flex';
+        }
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        function confirmInsertTable() {
+            let r = parseInt(document.getElementById('dlg-rows').value);
+            let c = parseInt(document.getElementById('dlg-cols').value);
+            closeModal('insert-table-dialog');
+            insertTable(r, c);
+        }
+        
+        let contextTargetCell = null;
+
+        function showInsertColRowDialog(type) {
+            document.getElementById('icr-title').innerText = 'Insert ' + type;
+            document.getElementById('icr-type').value = type;
+            document.getElementById('context-menu').style.display = 'none';
+            
+            // if triggered from context menu, ensure we select that cell
+            if (contextTargetCell && (!selectedCells.length || !selectedCells.includes(contextTargetCell))) {
+                document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+                contextTargetCell.classList.add('selected');
+                selectedCells = [contextTargetCell];
+                activeTable = contextTargetCell.closest('table');
+            }
+            
+            showModal('insert-col-row-dialog');
+        }
+
+        function confirmInsertColRow() {
+            let num = parseInt(document.getElementById('icr-number').value);
+            let pos = document.querySelector('input[name="icr-pos"]:checked').value;
+            let type = document.getElementById('icr-type').value;
+            closeModal('insert-col-row-dialog');
+            
+            for(let i=0; i<num; i++) {
+                if (type === 'Row') insertRow(pos === 'before' ? 'above' : 'below');
+                if (type === 'Column') insertCol(pos === 'before' ? 'left' : 'right');
+            }
+        }
+
+        let selectedAutoFormat = 'word-table';
+        
+        function selectAF(className, el) {
+            document.querySelectorAll('.af-listbox-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedAutoFormat = className;
+            document.getElementById('af-preview-table').className = 'word-table ' + className;
+        }
+
+        function confirmAutoFormat() {
+            if (activeTable) {
+                activeTable.className = 'word-table'; // reset
+                if (selectedAutoFormat !== 'word-table') {
+                    activeTable.classList.add(selectedAutoFormat);
+                }
+            }
+            closeModal('autoformat-dialog');
+        }
+
+        // Row/Col Selecting logic for Menu
+        function selectRow() {
+            if (!activeTable || selectedCells.length === 0) return;
+            const row = selectedCells[0].closest('tr');
+            document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+            selectedCells = Array.from(row.cells);
+            selectedCells.forEach(c => c.classList.add('selected'));
+        }
+
+        function selectCol() {
+            if (!activeTable || selectedCells.length === 0) return;
+            const colIdx = getCellIndex(selectedCells[0]);
+            document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+            selectedCells = [];
+            Array.from(activeTable.rows).forEach(row => {
+                const cell = row.cells[colIdx];
+                if (cell) {
+                    cell.classList.add('selected');
+                    selectedCells.push(cell);
+                }
+            });
+        }
+
+        function selectAllTable() {
+            if (!activeTable) return;
+            document.querySelectorAll('.page td, .page th').forEach(c => c.classList.remove('selected'));
+            selectedCells = Array.from(activeTable.querySelectorAll('td, th'));
+            selectedCells.forEach(c => c.classList.add('selected'));
+        }
+
+        function promptRowHeight() {
+            if (selectedCells.length === 0) return;
+            const height = prompt("Enter row height in pixels:", "40");
+            if (height) {
+                selectedCells[0].closest('tr').style.height = height + 'px';
+            }
+        }
+
+        function promptColWidth() {
+            if (selectedCells.length === 0) return;
+            const width = prompt("Enter column width in pixels:", "100");
+            if (width) {
+                const colIdx = getCellIndex(selectedCells[0]);
+                Array.from(activeTable.rows).forEach(row => {
+                    if (row.cells[colIdx]) row.cells[colIdx].style.width = width + 'px';
+                });
+            }
+        }
+
+        // --- Context Menu Logic ---
+        const contextMenu = document.getElementById('context-menu');
+        
+        document.getElementById('editor').addEventListener('contextmenu', (e) => {
+            if (e.target.tagName === 'TD' || e.target.tagName === 'TH') {
+                e.preventDefault();
+                contextTargetCell = e.target;
+                
+                contextMenu.style.display = 'block';
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.style.top = e.pageY + 'px';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#context-menu')) {
+                contextMenu.style.display = 'none';
+            }
+            
+            // Hide Modals if clicked outside
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.style.display = 'none';
+            }
+        });
+
+        // --- Keyboard Navigation in Table ---
+        document.getElementById('editor').addEventListener('keydown', (e) => {
+            if (e.key === 'Shift') document.body.classList.add('shift-pressed');
+            
+            // F12 or Ctrl+F12 shortcut for Insert Table
+            if (e.ctrlKey && e.key === 'F12') {
+                e.preventDefault();
+                showModal('insert-table-dialog');
+            }
+            
+            // Handle cell formula evaluation on Enter
+            if (e.key === 'Enter') {
+                let selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                let focusNode = selection.focusNode;
+                let cell = focusNode.nodeType === 3 ? focusNode.parentElement.closest('td, th') : (focusNode.closest ? focusNode.closest('td, th') : null);
+                if (cell) {
+                    const text = cell.innerText.trim();
+                    if (text.toLowerCase().startsWith('=sum<')) {
+                        e.preventDefault();
+                        evaluateFormula(text, cell);
+                    }
+                }
+            }
+
+            // Handle table navigation
+            if (['Tab', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                let selection = window.getSelection();
+                if (!selection.rangeCount) return;
+                
+                let focusNode = selection.focusNode;
+                let cell = focusNode.nodeType === 3 ? focusNode.parentElement.closest('td, th') : (focusNode.closest ? focusNode.closest('td, th') : null);
+                
+                if (cell) {
+                    let table = cell.closest('table');
+                    let row = cell.closest('tr');
+                    let rIdx = row.rowIndex;
+                    let cIdx = Array.from(row.children).indexOf(cell);
+                    
+                    let targetCell = null;
+                    
+                    if (e.key === 'Tab') {
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            // Shift+Tab: previous cell
+                            if (cIdx > 0) targetCell = row.children[cIdx - 1];
+                            else if (rIdx > 0) targetCell = table.rows[rIdx - 1].children[table.rows[rIdx-1].children.length - 1];
+                        } else {
+                            // Tab: next cell
+                            if (cIdx < row.children.length - 1) targetCell = row.children[cIdx + 1];
+                            else if (rIdx < table.rows.length - 1) targetCell = table.rows[rIdx + 1].children[0];
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        if (rIdx > 0 && table.rows[rIdx - 1].children[cIdx]) {
+                            targetCell = table.rows[rIdx - 1].children[cIdx];
+                        }
+                    } else if (e.key === 'ArrowDown') {
+                        if (rIdx < table.rows.length - 1 && table.rows[rIdx + 1].children[cIdx]) {
+                            targetCell = table.rows[rIdx + 1].children[cIdx];
+                        }
+                    }
+                    
+                    if (targetCell) {
+                        e.preventDefault(); // prevent default scroll or caret move
+                        let range = document.createRange();
+                        range.selectNodeContents(targetCell);
+                        range.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'Shift') document.body.classList.remove('shift-pressed');
+        });
+
+        // Column Resizing via Drag
+        let isResizing = false;
+        let startX, startWidth;
+        let resizingCell = null;
+
+        document.addEventListener('mousemove', (e) => {
+            if (e.target.tagName === 'TD' || e.target.tagName === 'TH') {
+                const rect = e.target.getBoundingClientRect();
+                if (rect.right - e.clientX < 10) {
+                    e.target.style.cursor = 'col-resize';
+                } else {
+                    e.target.style.cursor = 'text';
+                }
+            }
+            
+            if (isResizing && resizingCell) {
+                const newWidth = startWidth + (e.clientX - startX);
+                resizingCell.style.width = newWidth + 'px';
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if ((e.target.tagName === 'TD' || e.target.tagName === 'TH') && e.target.style.cursor === 'col-resize') {
+                isResizing = true;
+                startX = e.clientX;
+                startWidth = e.target.offsetWidth;
+                resizingCell = e.target;
+                e.preventDefault(); 
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isResizing = false;
+            resizingCell = null;
+        });
+
+    </script>
+    
+    <div class="status-bar">
+        <span id="status-cell">Cell: None</span>
+        <span>Page 1 of 1</span>
+    </div>
+</body>
+</html>
