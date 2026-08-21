@@ -653,6 +653,147 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #999;
         }
+        /* ─────────── DESKTOP SIMULATION ─────────── */
+        #desktopOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e5799 0%, #207cca 51%, #2989d8 100%);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+        }
+        #desktopBanner {
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            padding: 8px 16px;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        #desktopBanner button {
+            background: #2b579a;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        #desktopBanner button:hover {
+            background: #1a3f6a;
+        }
+        #desktopFiles {
+            flex: 1;
+            padding: 24px;
+            display: flex;
+            align-content: flex-start;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        .desktop-file {
+            width: 90px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.9);
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 4px;
+        }
+        .desktop-file:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        .desktop-file .icon {
+            font-size: 36px;
+            margin-bottom: 4px;
+        }
+        .desktop-file input {
+            width: 100%;
+            font-size: 12px;
+            text-align: center;
+            border: 1px solid #2b579a;
+            padding: 2px;
+            box-sizing: border-box;
+            color: #000;
+            background: #fff;
+            outline: none;
+            border-radius: 2px;
+        }
+        #desktopTaskbar {
+            height: 40px;
+            background: rgba(15, 15, 15, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            gap: 12px;
+            color: #fff;
+            font-size: 13px;
+        }
+        .taskbar-btn {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            padding: 4px 8px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        .taskbar-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .taskbar-item {
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .taskbar-time {
+            margin-left: auto;
+            font-size: 12px;
+            color: #ccc;
+        }
+        #desktopContextMenu {
+            position: fixed;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            z-index: 10000;
+            display: none;
+            padding: 2px 0;
+            font-size: 12px;
+            color: #000;
+            min-width: 120px;
+        }
+        #desktopContextMenu .item {
+            padding: 6px 16px;
+            cursor: pointer;
+            position: relative;
+        }
+        #desktopContextMenu .item:hover {
+            background: #e5f3ff;
+        }
+        #desktopContextMenu .submenu {
+            display: none;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            min-width: 180px;
+            padding: 2px 0;
+        }
+        #desktopContextMenu .item:hover > .submenu {
+            display: block;
+        }
         /* ─────────── RESPONSIVE ─────────── */
         @media (max-width: 820px) {
             #docPage {
@@ -715,152 +856,179 @@
         <span class="app-icon">📄</span>
         <span class="doc-name" id="docNameDisplay">Document</span>
         <span style="flex:1"></span>
+        <button id="btnDesktopMode" style="background:#e8f0fe;border:1px solid #2b579a;color:#2b579a;border-radius:3px;padding:2px 8px;font-size:12px;cursor:pointer;margin-right:12px;display:flex;align-items:center;gap:4px;">🖥️ Desktop View</button>
         <span class="win-ctrl">
-            <span>─</span>
-            <span>□</span>
-            <span>✕</span>
+            <span id="winMinimize" title="Minimize/Expand Ribbon" style="cursor:pointer;">─</span>
+            <span id="winMaximize" title="Toggle Fullscreen" style="cursor:pointer;">□</span>
+            <span id="winClose" title="Reset Document" style="cursor:pointer;">✕</span>
         </span>
     </div>
 
     <!-- ─── RIBBON TABS ─── -->
     <div id="ribbonTabs">
-        <span class="tab active" data-tab="file">File</span>
+        <span class="tab" data-tab="file">File</span>
         <span class="tab active" data-tab="home">Home</span>
-        <span class="tab inert" data-tab="insert">Insert</span>
-        <span class="tab inert" data-tab="design">Design</span>
-        <span class="tab inert" data-tab="layout">Layout</span>
-        <span class="tab inert" data-tab="references">References</span>
-        <span class="tab inert" data-tab="mailings">Mailings</span>
-        <span class="tab active" data-tab="review">Review</span>
-        <span class="tab inert" data-tab="view">View</span>
+        <span class="tab" data-tab="insert">Insert</span>
+        <span class="tab" data-tab="review">Review</span>
+        <span class="tab" data-tab="view">View</span>
     </div>
 
-    <!-- ─── RIBBON (Home) ─── -->
+    <!-- ─── RIBBON ─── -->
     <div id="ribbon">
-        <!-- Font Group -->
-        <div class="ribbon-group">
-            <div class="group-wrap">
-                <div class="flex-center">
-                    <select class="ribbon-select font-family" id="fontFamily" title="Font">
-                        <option value="Calibri">Calibri</option>
-                        <option value="Arial">Arial</option>
-                        <option value="Arial Black">Arial Black</option>
-                        <option value="Arial Narrow">Arial Narrow</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Comic Sans MS">Comic Sans MS</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Algerian">Algerian</option>
-                        <option value="Agency FB">Agency FB</option>
-                    </select>
-                    <select class="ribbon-select font-size" id="fontSize" title="Font Size">
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12" selected>12</option>
-                        <option value="14">14</option>
-                        <option value="16">16</option>
-                        <option value="18">18</option>
-                        <option value="20">20</option>
-                        <option value="24">24</option>
-                        <option value="28">28</option>
-                        <option value="32">32</option>
-                        <option value="36">36</option>
-                        <option value="40">40</option>
-                        <option value="48">48</option>
-                        <option value="56">56</option>
-                        <option value="64">64</option>
-                        <option value="72">72</option>
-                    </select>
-                </div>
-                <span class="group-label">Font</span>
-            </div>
-            <div class="group-wrap">
-                <div class="flex-center">
-                    <button class="ribbon-btn" id="btnBold" title="Bold (Ctrl+B)"><b>B</b></button>
-                    <button class="ribbon-btn" id="btnItalic" title="Italic (Ctrl+I)"><i>I</i></button>
-                    <button class="ribbon-btn" id="btnUnderline" title="Underline (Ctrl+U)"><u>U</u></button>
-                    <div class="color-picker-wrapper" id="fontColorWrapper">
-                        <button class="color-btn" id="fontColorBtn" title="Font Color">
-                            <span>A</span>
-                            <span class="color-bar" id="fontColorBar" style="background:#000;"></span>
-                        </button>
-                        <div class="color-dropdown" id="fontColorDropdown">
-                            <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Theme Colors</div>
-                            <div class="color-grid" id="themeColors">
-                                <div class="swatch" style="background:#000;"></div>
-                                <div class="swatch" style="background:#434343;"></div>
-                                <div class="swatch" style="background:#666;"></div>
-                                <div class="swatch" style="background:#999;"></div>
-                                <div class="swatch" style="background:#b7b7b7;"></div>
-                                <div class="swatch" style="background:#ccc;"></div>
-                                <div class="swatch" style="background:#d9d9d9;"></div>
-                                <div class="swatch" style="background:#fff;border:1px solid #aaa;"></div>
-                                <div class="swatch" style="background:#c00000;"></div>
-                                <div class="swatch" style="background:#ff0000;"></div>
-                                <div class="swatch" style="background:#ffc000;"></div>
-                                <div class="swatch" style="background:#ffff00;"></div>
-                                <div class="swatch" style="background:#92d050;"></div>
-                                <div class="swatch" style="background:#00b050;"></div>
-                                <div class="swatch" style="background:#00b0f0;"></div>
-                                <div class="swatch" style="background:#0070c0;"></div>
-                                <div class="swatch" style="background:#002060;"></div>
-                                <div class="swatch" style="background:#7030a0;"></div>
-                                <div class="swatch" style="background:#ed7d31;"></div>
-                                <div class="swatch" style="background:#a5a5a5;"></div>
-                                <div class="swatch" style="background:#ffc0cb;"></div>
-                                <div class="swatch more" id="moreColorsBtn">More Colors...</div>
-                            </div>
-                            <input type="color" id="hiddenColorPicker" style="display:none;" />
-                        </div>
+        <!-- Home Ribbon -->
+        <div class="ribbon-content" id="ribbon-home" style="display:flex;align-items:center;gap:12px 24px;flex-wrap:wrap;">
+            <!-- Font Group -->
+            <div class="ribbon-group">
+                <div class="group-wrap">
+                    <div class="flex-center">
+                        <select class="ribbon-select font-family" id="fontFamily" title="Font">
+                            <option value="Calibri">Calibri</option>
+                            <option value="Arial">Arial</option>
+                            <option value="Arial Black">Arial Black</option>
+                            <option value="Arial Narrow">Arial Narrow</option>
+                            <option value="Times New Roman">Times New Roman</option>
+                            <option value="Comic Sans MS">Comic Sans MS</option>
+                            <option value="Georgia">Georgia</option>
+                            <option value="Algerian">Algerian</option>
+                            <option value="Agency FB">Agency FB</option>
+                        </select>
+                        <select class="ribbon-select font-size" id="fontSize" title="Font Size">
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
+                            <option value="11">11</option>
+                            <option value="12" selected>12</option>
+                            <option value="14">14</option>
+                            <option value="16">16</option>
+                            <option value="18">18</option>
+                            <option value="20">20</option>
+                            <option value="24">24</option>
+                            <option value="28">28</option>
+                            <option value="32">32</option>
+                            <option value="36">36</option>
+                            <option value="40">40</option>
+                            <option value="48">48</option>
+                            <option value="56">56</option>
+                            <option value="64">64</option>
+                            <option value="72">72</option>
+                        </select>
                     </div>
-                    <span style="font-size:18px;margin-left:2px;">🖌</span>
+                    <span class="group-label">Font</span>
                 </div>
-                <span class="group-label">Font</span>
+                <div class="group-wrap">
+                    <div class="flex-center">
+                        <button class="ribbon-btn" id="btnBold" title="Bold (Ctrl+B)"><b>B</b></button>
+                        <button class="ribbon-btn" id="btnItalic" title="Italic (Ctrl+I)"><i>I</i></button>
+                        <button class="ribbon-btn" id="btnUnderline" title="Underline (Ctrl+U)"><u>U</u></button>
+                        <div class="color-picker-wrapper" id="fontColorWrapper">
+                            <button class="color-btn" id="fontColorBtn" title="Font Color">
+                                <span>A</span>
+                                <span class="color-bar" id="fontColorBar" style="background:#000;"></span>
+                            </button>
+                            <div class="color-dropdown" id="fontColorDropdown">
+                                <div style="font-size:11px;font-weight:600;margin-bottom:4px;">Theme Colors</div>
+                                <div class="color-grid" id="themeColors">
+                                    <div class="swatch" style="background:#000;"></div>
+                                    <div class="swatch" style="background:#434343;"></div>
+                                    <div class="swatch" style="background:#666;"></div>
+                                    <div class="swatch" style="background:#999;"></div>
+                                    <div class="swatch" style="background:#b7b7b7;"></div>
+                                    <div class="swatch" style="background:#ccc;"></div>
+                                    <div class="swatch" style="background:#d9d9d9;"></div>
+                                    <div class="swatch" style="background:#fff;border:1px solid #aaa;"></div>
+                                    <div class="swatch" style="background:#c00000;"></div>
+                                    <div class="swatch" style="background:#ff0000;"></div>
+                                    <div class="swatch" style="background:#ffc000;"></div>
+                                    <div class="swatch" style="background:#ffff00;"></div>
+                                    <div class="swatch" style="background:#92d050;"></div>
+                                    <div class="swatch" style="background:#00b050;"></div>
+                                    <div class="swatch" style="background:#00b0f0;"></div>
+                                    <div class="swatch" style="background:#0070c0;"></div>
+                                    <div class="swatch" style="background:#002060;"></div>
+                                    <div class="swatch" style="background:#7030a0;"></div>
+                                    <div class="swatch" style="background:#ed7d31;"></div>
+                                    <div class="swatch" style="background:#a5a5a5;"></div>
+                                    <div class="swatch" style="background:#ffc0cb;"></div>
+                                    <div class="swatch more" id="moreColorsBtn">More Colors...</div>
+                                </div>
+                                <input type="color" id="hiddenColorPicker" style="display:none;" />
+                            </div>
+                        </div>
+                        <button class="ribbon-btn" id="btnHighlight" title="Highlight Color" style="font-size:16px;">🖌</button>
+                    </div>
+                    <span class="group-label">Font</span>
+                </div>
+            </div>
+
+            <div class="spacer"></div>
+
+            <!-- Paragraph Group -->
+            <div class="ribbon-group">
+                <div class="group-wrap">
+                    <div class="flex-center">
+                        <button class="ribbon-btn" id="alignLeft" title="Align Left">☰<span style="font-size:10px;">◀</span></button>
+                        <button class="ribbon-btn" id="alignCenter" title="Center">☰<span style="font-size:10px;">◆</span></button>
+                        <button class="ribbon-btn" id="alignRight" title="Align Right">☰<span style="font-size:10px;">▶</span></button>
+                        <button class="ribbon-btn" id="alignJustify" title="Justify">☰<span style="font-size:10px;">≡</span></button>
+                        <button class="ribbon-btn" id="btnBullets" title="Bullets">•</button>
+                        <button class="ribbon-btn" id="btnNumbering" title="Numbering">1.</button>
+                        <select class="ribbon-select" id="lineSpacing" title="Line Spacing" style="min-width:56px;">
+                            <option value="1">1.0</option>
+                            <option value="1.15">1.15</option>
+                            <option value="1.5">1.5</option>
+                            <option value="2">2.0</option>
+                            <option value="2.5">2.5</option>
+                            <option value="3">3.0</option>
+                        </select>
+                    </div>
+                    <span class="group-label">Paragraph</span>
+                </div>
+            </div>
+
+            <div class="spacer"></div>
+
+            <!-- Quick actions -->
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
+                <button class="ribbon-btn" id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
             </div>
         </div>
 
-        <div class="spacer"></div>
-
-        <!-- Paragraph Group -->
-        <div class="ribbon-group">
-            <div class="group-wrap">
-                <div class="flex-center">
-                    <button class="ribbon-btn" id="alignLeft" title="Align Left">☰<span style="font-size:10px;">◀</span></button>
-                    <button class="ribbon-btn" id="alignCenter" title="Center">☰<span style="font-size:10px;">◆</span></button>
-                    <button class="ribbon-btn" id="alignRight" title="Align Right">☰<span style="font-size:10px;">▶</span></button>
-                    <button class="ribbon-btn" id="alignJustify" title="Justify">☰<span style="font-size:10px;">≡</span></button>
-                    <button class="ribbon-btn" id="btnBullets" title="Bullets">•</button>
-                    <button class="ribbon-btn" id="btnNumbering" title="Numbering">1.</button>
-                    <select class="ribbon-select" id="lineSpacing" title="Line Spacing" style="min-width:56px;">
-                        <option value="1">1.0</option>
-                        <option value="1.15">1.15</option>
-                        <option value="1.5">1.5</option>
-                        <option value="2">2.0</option>
-                        <option value="2.5">2.5</option>
-                        <option value="3">3.0</option>
-                    </select>
-                </div>
-                <span class="group-label">Paragraph</span>
+        <!-- Insert Ribbon -->
+        <div class="ribbon-content" id="ribbon-insert" style="display:none;align-items:center;gap:12px 24px;flex-wrap:wrap;">
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="btnInsertPicture" title="Insert Picture">🖼️ Picture</button>
+                <button class="ribbon-btn" id="btnInsertTable" title="Insert Table">📊 Table</button>
+                <button class="ribbon-btn" id="btnInsertLine" title="Horizontal Line">➖ Line</button>
+                <button class="ribbon-btn" id="btnInsertDate" title="Insert Date & Time">📅 Date/Time</button>
+                <button class="ribbon-btn" id="btnInsertSymbol" title="Insert Symbol">★ Symbol</button>
             </div>
         </div>
 
-        <div class="spacer"></div>
+        <!-- Review Ribbon -->
+        <div class="ribbon-content" id="ribbon-review" style="display:none;align-items:center;gap:12px 24px;flex-wrap:wrap;">
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="btnReviewThesaurus" title="Thesaurus">🔤 Thesaurus</button>
+                <button class="ribbon-btn" id="btnReviewGrammar" title="Check Spelling & Grammar">✏️ Check Grammar</button>
+            </div>
+        </div>
 
-        <!-- Quick actions -->
-        <div class="ribbon-group">
-            <button class="ribbon-btn" id="btnUndo" title="Undo (Ctrl+Z)">↩</button>
-            <button class="ribbon-btn" id="btnRedo" title="Redo (Ctrl+Y)">↪</button>
+        <!-- View Ribbon -->
+        <div class="ribbon-content" id="ribbon-view" style="display:none;align-items:center;gap:12px 24px;flex-wrap:wrap;">
+            <div class="ribbon-group">
+                <button class="ribbon-btn" id="btnZoomIn" title="Zoom In">🔍 Zoom In</button>
+                <button class="ribbon-btn" id="btnZoomOut" title="Zoom Out">🔍 Zoom Out</button>
+                <button class="ribbon-btn" id="btnZoomReset" title="Reset Zoom">100%</button>
+                <button class="ribbon-btn" id="btnDarkMode" title="Toggle Dark Mode">🌙 Dark Mode</button>
+                <button class="ribbon-btn" id="btnFullscreen" title="Full Screen">⛶ Fullscreen</button>
+            </div>
         </div>
     </div>
 
     <!-- ─── DOCUMENT AREA ─── -->
     <div id="docContainer">
         <div id="docPage" contenteditable="true" spellcheck="true">
-            <p style="text-align:center;font-size:28px;font-weight:bold;margin-bottom:20px;">Welcome to MS Word</p>
-            <p style="font-size:14px;">This is a working document. Try typing, formatting, and exploring all the tools!</p>
-            <p style="font-size:14px;margin-top:12px;">You can change fonts, sizes, colors, alignment, and more.</p>
-            <p style="font-size:14px;margin-top:12px;">Right-click on text to see the mini toolbar and context menu.</p>
+            <p><br></p>
         </div>
     </div>
 
@@ -884,7 +1052,6 @@
                 <div class="item" data-panel="save"><span>💾</span> Save</div>
                 <div class="item" data-panel="saveas"><span>📝</span> Save As</div>
                 <div class="item" data-panel="print"><span>🖨️</span> Print</div>
-                <div class="item inert"><span>🔗</span> Share</div>
             </div>
             <div class="main-panel" id="fileMainPanel">
                 <!-- dynamic content -->
@@ -937,6 +1104,37 @@
         <div class="item" id="ctxSynonyms">🔤 Synonyms ▶</div>
         <div class="divider"></div>
         <div class="item" id="ctxSpellSuggest">✏️ Spelling...</div>
+        <div class="item" id="ctxSpellIgnore" style="display:none;">❌ Ignore</div>
+    </div>
+
+    <!-- ─── DESKTOP OVERLAY ─── -->
+    <div id="desktopOverlay" style="display:none;">
+        <div id="desktopBanner">
+            <span>💡 <strong>Class 3 Textbook Practice:</strong> Right-click empty desktop space ➔ <strong>New</strong> ➔ <strong>Microsoft Word Document</strong></span>
+            <button id="closeDesktopBtn">✕ Open MS Word</button>
+        </div>
+        <div id="desktopFiles">
+            <div class="desktop-file" id="desktopWordShortcut">
+                <div class="icon">📄</div>
+                <div class="label">Microsoft Word</div>
+            </div>
+            <div class="desktop-file">
+                <div class="icon">🗑️</div>
+                <div class="label">Recycle Bin</div>
+            </div>
+        </div>
+        <div id="desktopContextMenu">
+            <div class="item has-sub">New <span class="sub-arrow" style="float:right;">▶</span>
+                <div class="submenu">
+                    <div class="item" id="desktopNewWord">📄 Microsoft Word Document</div>
+                </div>
+            </div>
+        </div>
+        <div id="desktopTaskbar">
+            <button class="taskbar-btn" id="startMenuBtn">🪟 Start</button>
+            <div class="taskbar-item active" id="taskbarWordBtn">📄 Microsoft Word</div>
+            <div class="taskbar-time">12:00 PM</div>
+        </div>
     </div>
 
     <!-- ─── MINI TOOLBAR ─── -->
@@ -1043,7 +1241,7 @@
                 'tall': ['lofty', 'high', 'elevated', 'soaring', 'towering', 'statuesque'],
                 'short': ['brief', 'small', 'low', 'compact', 'diminutive', 'stubby'],
             },
-            grammarErrors: [], // for blue underlines
+            grammarErrorsIgnore: [], // for ignoring grammar checking
         };
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -1424,7 +1622,7 @@
                 let lastWord = '';
                 for (let i = 0; i < words.length; i++) {
                     const w = words[i];
-                    if (w.toLowerCase() === lastWord.toLowerCase() && w.length > 1) {
+                    if (w.toLowerCase() === lastWord.toLowerCase() && w.length > 1 && !state.grammarErrorsIgnore.includes(w.toLowerCase())) {
                         // duplicate word error
                         const span = document.createElement('span');
                         span.className = 'grammar-error';
@@ -1665,8 +1863,7 @@
             if (name === null) return;
             const n = name.trim() || 'Document';
             updateDocName(n);
-            docPage.innerHTML =
-                `<p style="text-align:center;font-size:28px;font-weight:bold;margin-bottom:20px;">Welcome to ${n}</p><p style="font-size:14px;">Start typing your content here...</p>`;
+            docPage.innerHTML = '<p><br></p>';
             state.undoStack = [];
             state.redoStack = [];
             pushUndo();
@@ -1725,7 +1922,19 @@
             // spelling suggestions
             const selText = sel.toString().trim();
             const spellItem = document.getElementById('ctxSpellSuggest');
-            if (selText && selText.length > 1) {
+            const ignoreItem = document.getElementById('ctxSpellIgnore');
+            
+            const targetEl = e.target;
+            if (targetEl.classList && targetEl.classList.contains('grammar-error')) {
+                spellItem.textContent = '✏️ Delete repeated word';
+                spellItem.style.display = 'block';
+                spellItem.dataset.action = 'grammar-fix';
+                spellItem.dataset.errorText = targetEl.textContent;
+                
+                ignoreItem.style.display = 'block';
+                ignoreItem.dataset.action = 'grammar-ignore';
+                ignoreItem.dataset.errorText = targetEl.textContent;
+            } else if (selText && selText.length > 1) {
                 // simple suggestions
                 const suggestions = ['correct', 'fixed', 'spelling'];
                 let html = '✏️ Spelling...';
@@ -1734,9 +1943,17 @@
                 }
                 spellItem.textContent = html;
                 spellItem.style.display = 'block';
+                spellItem.dataset.action = 'spell-fix';
+                
+                ignoreItem.style.display = 'block';
+                ignoreItem.dataset.action = 'spell-ignore';
+                ignoreItem.dataset.errorText = selText;
             } else {
                 spellItem.style.display = 'block';
                 spellItem.textContent = '✏️ Spelling...';
+                spellItem.dataset.action = '';
+                
+                ignoreItem.style.display = 'none';
             }
 
             // synonyms
@@ -1804,27 +2021,57 @@
 
         // spelling suggestions click
         document.getElementById('ctxSpellSuggest').addEventListener('click', () => {
-            // simple: replace with a suggestion
-            const sel = window.getSelection();
-            if (sel.rangeCount) {
-                const range = sel.getRangeAt(0);
-                const node = range.startContainer;
-                if (node.nodeType === 3) {
-                    const text = node.textContent;
-                    const start = range.startOffset;
-                    const end = range.endOffset;
-                    let wordStart = start;
-                    while (wordStart > 0 && /[a-zA-Z']/.test(text[wordStart - 1])) wordStart--;
-                    let wordEnd = end;
-                    while (wordEnd < text.length && /[a-zA-Z']/.test(text[wordEnd])) wordEnd++;
-                    const word = text.substring(wordStart, wordEnd);
-                    const suggestions = ['correct', 'fixed', 'spelling', 'revised'];
-                    const suggestion = suggestions.find(s => s.toLowerCase() !== word.toLowerCase()) || 'fixed';
-                    const newText = text.substring(0, wordStart) + suggestion + text.substring(wordEnd);
-                    node.textContent = newText;
+            const action = document.getElementById('ctxSpellSuggest').dataset.action;
+            if (action === 'grammar-fix') {
+                if (contextTarget && contextTarget.classList && contextTarget.classList.contains('grammar-error')) {
+                    const parent = contextTarget.parentNode;
+                    parent.removeChild(contextTarget);
                     pushUndo();
                     updateWordCount();
                     runGrammarCheck();
+                }
+            } else {
+                // simple: replace with a suggestion
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    const node = range.startContainer;
+                    if (node.nodeType === 3) {
+                        const text = node.textContent;
+                        const start = range.startOffset;
+                        const end = range.endOffset;
+                        let wordStart = start;
+                        while (wordStart > 0 && /[a-zA-Z']/.test(text[wordStart - 1])) wordStart--;
+                        let wordEnd = end;
+                        while (wordEnd < text.length && /[a-zA-Z']/.test(text[wordEnd])) wordEnd++;
+                        const word = text.substring(wordStart, wordEnd);
+                        const suggestions = ['correct', 'fixed', 'spelling', 'revised'];
+                        const suggestion = suggestions.find(s => s.toLowerCase() !== word.toLowerCase()) || 'fixed';
+                        const newText = text.substring(0, wordStart) + suggestion + text.substring(wordEnd);
+                        node.textContent = newText;
+                        pushUndo();
+                        updateWordCount();
+                        runGrammarCheck();
+                    }
+                }
+            }
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('ctxSpellIgnore').addEventListener('click', () => {
+            const action = document.getElementById('ctxSpellIgnore').dataset.action;
+            const errorText = document.getElementById('ctxSpellIgnore').dataset.errorText;
+            if (action === 'grammar-ignore' && errorText) {
+                state.grammarErrorsIgnore.push(errorText.toLowerCase());
+                runGrammarCheck();
+            } else if (action === 'spell-ignore') {
+                // Native spellcheck ignore
+                const sel = window.getSelection();
+                if (sel.rangeCount && !sel.isCollapsed) {
+                    const range = sel.getRangeAt(0);
+                    const span = document.createElement('span');
+                    span.spellcheck = false;
+                    range.surroundContents(span);
                 }
             }
             contextMenu.style.display = 'none';
@@ -1970,6 +2217,261 @@
             }
         });
 
+        // ── Ribbon Tab Switching ──
+        document.querySelectorAll('#ribbonTabs .tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const target = tab.dataset.tab;
+                if (target === 'file') {
+                    fileOverlay.classList.add('open');
+                    showFilePanel('info');
+                    return;
+                }
+                document.querySelectorAll('#ribbonTabs .tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                document.querySelectorAll('.ribbon-content').forEach(el => el.style.display = 'none');
+                const content = document.getElementById('ribbon-' + target);
+                if (content) content.style.display = 'flex';
+            });
+        });
+
+        // ── Highlight Color ──
+        const btnHighlight = document.getElementById('btnHighlight');
+        if (btnHighlight) {
+            btnHighlight.addEventListener('click', () => {
+                document.execCommand('hiliteColor', false, '#ffff00');
+            });
+        }
+
+        // ── Title Bar Window Controls ──
+        const winMinimize = document.getElementById('winMinimize');
+        const winMaximize = document.getElementById('winMaximize');
+        const winClose = document.getElementById('winClose');
+        if (winMinimize) {
+            winMinimize.addEventListener('click', () => {
+                const ribbonEl = document.getElementById('ribbon');
+                ribbonEl.style.display = ribbonEl.style.display === 'none' ? 'flex' : 'none';
+            });
+        }
+        if (winMaximize) {
+            winMaximize.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                } else {
+                    document.exitFullscreen().catch(() => {});
+                }
+            });
+        }
+        if (winClose) {
+            winClose.addEventListener('click', () => {
+                if (confirm('Clear current document content?')) {
+                    docPage.innerHTML = '<p></p>';
+                    updateWordCount();
+                }
+            });
+        }
+
+        // ── Insert Ribbon Features ──
+        const btnInsertPicture = document.getElementById('btnInsertPicture');
+        const btnInsertTable = document.getElementById('btnInsertTable');
+        const btnInsertLine = document.getElementById('btnInsertLine');
+        const btnInsertDate = document.getElementById('btnInsertDate');
+        const btnInsertSymbol = document.getElementById('btnInsertSymbol');
+
+        const hiddenImageInput = document.createElement('input');
+        hiddenImageInput.type = 'file';
+        hiddenImageInput.accept = 'image/*';
+        hiddenImageInput.style.display = 'none';
+        document.body.appendChild(hiddenImageInput);
+
+        if (btnInsertPicture) {
+            btnInsertPicture.addEventListener('click', () => {
+                hiddenImageInput.click();
+            });
+        }
+
+        hiddenImageInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    const img = document.createElement('img');
+                    img.src = evt.target.result;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '400px';
+                    img.style.borderRadius = '4px';
+                    img.style.margin = '8px 0';
+                    img.style.display = 'block';
+
+                    docPage.focus();
+                    const sel = window.getSelection();
+                    if (sel.rangeCount > 0) {
+                        const range = sel.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(img);
+                        // Move cursor after inserted image
+                        range.collapse(false);
+                    } else {
+                        docPage.appendChild(img);
+                    }
+                    pushUndo();
+                    updateWordCount();
+                    state.isDirty = true;
+                };
+                reader.readAsDataURL(file);
+            }
+            hiddenImageInput.value = '';
+        });
+
+        if (btnInsertTable) {
+            btnInsertTable.addEventListener('click', () => {
+                const table = document.createElement('table');
+                table.style.width = '100%';
+                table.style.borderCollapse = 'collapse';
+                table.style.margin = '12px 0';
+                for (let r = 0; r < 3; r++) {
+                    const tr = document.createElement('tr');
+                    for (let c = 0; c < 3; c++) {
+                        const td = document.createElement('td');
+                        td.style.border = '1px solid #ccc';
+                        td.style.padding = '8px';
+                        td.textContent = `Cell ${r+1},${c+1}`;
+                        tr.appendChild(td);
+                    }
+                    table.appendChild(tr);
+                }
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    range.insertNode(table);
+                    pushUndo();
+                    updateWordCount();
+                }
+            });
+        }
+
+        if (btnInsertLine) {
+            btnInsertLine.addEventListener('click', () => {
+                const hr = document.createElement('hr');
+                hr.style.margin = '12px 0';
+                hr.style.border = '0';
+                hr.style.borderTop = '1px solid #aaa';
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    range.insertNode(hr);
+                    pushUndo();
+                }
+            });
+        }
+
+        if (btnInsertDate) {
+            btnInsertDate.addEventListener('click', () => {
+                const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                const textNode = document.createTextNode(dateStr);
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    range.insertNode(textNode);
+                    pushUndo();
+                    updateWordCount();
+                }
+            });
+        }
+
+        if (btnInsertSymbol) {
+            btnInsertSymbol.addEventListener('click', () => {
+                const symbol = prompt('Choose symbol (★, ♥, ©, ®, ™, ➔, ⚽, 🌟):', '★') || '★';
+                const textNode = document.createTextNode(symbol);
+                const sel = window.getSelection();
+                if (sel.rangeCount) {
+                    const range = sel.getRangeAt(0);
+                    range.insertNode(textNode);
+                    pushUndo();
+                }
+            });
+        }
+
+        // ── Review Ribbon Features ──
+        const btnReviewThesaurus = document.getElementById('btnReviewThesaurus');
+        const btnReviewGrammar = document.getElementById('btnReviewGrammar');
+
+        if (btnReviewThesaurus) {
+            btnReviewThesaurus.addEventListener('click', () => {
+                const word = getSelectedWord();
+                if (word) {
+                    showThesaurus(word);
+                } else {
+                    const sel = window.getSelection();
+                    const text = sel.toString().trim();
+                    if (text) {
+                        const words = text.split(/\s+/);
+                        if (words.length > 0) showThesaurus(words[0]);
+                    } else {
+                        alert('Select a word first, then click Thesaurus.');
+                    }
+                }
+            });
+        }
+
+        if (btnReviewGrammar) {
+            btnReviewGrammar.addEventListener('click', () => {
+                runGrammarCheck();
+                alert('Grammar and Spelling check completed!');
+            });
+        }
+
+        // ── View Ribbon Features ──
+        let currentZoom = 1.0;
+        const btnZoomIn = document.getElementById('btnZoomIn');
+        const btnZoomOut = document.getElementById('btnZoomOut');
+        const btnZoomReset = document.getElementById('btnZoomReset');
+        const btnDarkMode = document.getElementById('btnDarkMode');
+        const btnFullscreen = document.getElementById('btnFullscreen');
+
+        if (btnZoomIn) {
+            btnZoomIn.addEventListener('click', () => {
+                currentZoom = Math.min(2.0, currentZoom + 0.1);
+                docPage.style.transform = `scale(${currentZoom})`;
+                docPage.style.transformOrigin = 'top center';
+            });
+        }
+        if (btnZoomOut) {
+            btnZoomOut.addEventListener('click', () => {
+                currentZoom = Math.max(0.5, currentZoom - 0.1);
+                docPage.style.transform = `scale(${currentZoom})`;
+                docPage.style.transformOrigin = 'top center';
+            });
+        }
+        if (btnZoomReset) {
+            btnZoomReset.addEventListener('click', () => {
+                currentZoom = 1.0;
+                docPage.style.transform = 'scale(1)';
+            });
+        }
+        let editorDarkMode = false;
+        if (btnDarkMode) {
+            btnDarkMode.addEventListener('click', () => {
+                editorDarkMode = !editorDarkMode;
+                if (editorDarkMode) {
+                    docPage.style.background = '#1e1e1e';
+                    docPage.style.color = '#ffffff';
+                } else {
+                    docPage.style.background = '#ffffff';
+                    docPage.style.color = '#000000';
+                }
+            });
+        }
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                } else {
+                    document.exitFullscreen().catch(() => {});
+                }
+            });
+        }
+
         // ── File Menu ──
         document.querySelector('#ribbonTabs .tab[data-tab="file"]').addEventListener('click', () => {
             fileOverlay.classList.add('open');
@@ -2023,25 +2525,6 @@
         // ── Thesaurus ──
         thesaurusClose.addEventListener('click', () => {
             thesaurusPanel.classList.remove('open');
-        });
-
-        // Review tab → Thesaurus
-        document.querySelector('#ribbonTabs .tab[data-tab="review"]').addEventListener('click', () => {
-            // toggle thesaurus
-            const word = getSelectedWord();
-            if (word) {
-                showThesaurus(word);
-            } else {
-                // pick first word in selection or show sample
-                const sel = window.getSelection();
-                const text = sel.toString().trim();
-                if (text) {
-                    const words = text.split(/\s+/);
-                    if (words.length > 0) showThesaurus(words[0]);
-                } else {
-                    alert('Select a word first, then click Thesaurus.');
-                }
-            }
         });
 
         // ── Keyboard shortcut for thesaurus ──
@@ -2109,8 +2592,92 @@
         updateDocName('Document');
 
         // Simulate desktop right-click "New" → Word doc
-        // We'll add a small desktop simulation in the doc area background
-        // but we already have File → New and Ctrl+N
+        const desktopOverlay = document.getElementById('desktopOverlay');
+        const desktopContextMenu = document.getElementById('desktopContextMenu');
+        const desktopFiles = document.getElementById('desktopFiles');
+        const desktopNewWord = document.getElementById('desktopNewWord');
+        const btnDesktopMode = document.getElementById('btnDesktopMode');
+        const closeDesktopBtn = document.getElementById('closeDesktopBtn');
+        const desktopWordShortcut = document.getElementById('desktopWordShortcut');
+        const startMenuBtn = document.getElementById('startMenuBtn');
+        const taskbarWordBtn = document.getElementById('taskbarWordBtn');
+
+        if (btnDesktopMode) {
+            btnDesktopMode.addEventListener('click', () => {
+                desktopOverlay.style.display = 'flex';
+            });
+        }
+        if (closeDesktopBtn) {
+            closeDesktopBtn.addEventListener('click', () => {
+                desktopOverlay.style.display = 'none';
+            });
+        }
+        if (desktopWordShortcut) {
+            desktopWordShortcut.addEventListener('dblclick', () => {
+                desktopOverlay.style.display = 'none';
+            });
+        }
+        if (startMenuBtn) {
+            startMenuBtn.addEventListener('click', () => {
+                desktopOverlay.style.display = 'none';
+            });
+        }
+        if (taskbarWordBtn) {
+            taskbarWordBtn.addEventListener('click', () => {
+                desktopOverlay.style.display = 'none';
+            });
+        }
+
+        desktopOverlay.addEventListener('contextmenu', (e) => {
+            if (e.target.tagName && e.target.tagName.toLowerCase() === 'input') return;
+            e.preventDefault();
+            desktopContextMenu.style.display = 'block';
+            desktopContextMenu.style.left = e.clientX + 'px';
+            desktopContextMenu.style.top = e.clientY + 'px';
+        });
+
+        desktopOverlay.addEventListener('click', (e) => {
+            if (!desktopContextMenu.contains(e.target)) {
+                desktopContextMenu.style.display = 'none';
+            }
+        });
+
+        desktopNewWord.addEventListener('click', () => {
+            desktopContextMenu.style.display = 'none';
+            
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'desktop-file';
+            
+            const icon = document.createElement('div');
+            icon.className = 'icon';
+            icon.textContent = '📄';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = 'New Microsoft Word Document';
+            
+            fileDiv.appendChild(icon);
+            fileDiv.appendChild(input);
+            desktopFiles.appendChild(fileDiv);
+            
+            input.focus();
+            input.select();
+            
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const finalName = input.value.trim() || 'New Microsoft Word Document';
+                    desktopOverlay.style.display = 'none'; // hide desktop
+                    updateDocName(finalName);
+                    docPage.innerHTML = '<p></p>'; // blank doc
+                    state.undoStack = [];
+                    state.redoStack = [];
+                    pushUndo();
+                    updateWordCount();
+                    runGrammarCheck();
+                    state.isDirty = false;
+                }
+            });
+        });
 
         console.log('📄 MS Word Clone ready!');
         console.log('💡 Tips:');
