@@ -5,7 +5,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)](LICENSE)
 
-A powerful, lightweight, zero-dependency browser-based HTML text editor modeled after the classic Microsoft Word interface. Built with vanilla HTML5, CSS3, and JavaScript, **HTML Text Writer** delivers a full-featured word processing experience directly inside any web browser without needing server dependencies or installations.
+A powerful, lightweight browser-based HTML text editor modeled after the classic Microsoft Word interface. Built with vanilla HTML5, CSS3, and JavaScript, **HTML Text Writer** delivers a full-featured word processing experience directly inside any web browser without needing server dependencies or installations.
 
 ---
 
@@ -20,8 +20,9 @@ A powerful, lightweight, zero-dependency browser-based HTML text editor modeled 
 
 ### 📁 Backstage File Menu
 - **Info:** View document metadata and word count.
-- **New & Open:** Create new blank documents or upload existing HTML/TXT files.
-- **Save & Save As:** Download document files locally directly from your browser.
+- **New & Open:** Create new blank documents or upload existing HTML/TXT/DOCX files.
+- **Save & Save As:** Download HTML document files locally directly from your browser.
+- **DOCX:** Import Microsoft Word `.docx` files and export the current document as a `.docx` file.
 - **Print Preview:** Built-in live document print preview and direct browser printing capabilities.
 
 ### 📖 Proofing & Thesaurus
@@ -54,7 +55,7 @@ A powerful, lightweight, zero-dependency browser-based HTML text editor modeled 
 
 ## 🚀 Getting Started
 
-Since **HTML Text Writer** is built entirely with native web technologies, no build process or package installation (`npm` / `yarn`) is required.
+Since **HTML Text Writer** is built entirely with browser technologies, no build process or package installation (`npm` / `yarn`) is required. DOCX conversion libraries are loaded from the browser-ready `html-docx-js` and `Mammoth` CDNs when the app opens.
 
 ### Quick Start
 1. Clone the repository:
