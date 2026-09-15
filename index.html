@@ -1051,6 +1051,7 @@
                 <div class="item" data-panel="open"><span>📂</span> Open</div>
                 <div class="item" data-panel="save"><span>💾</span> Save</div>
                 <div class="item" data-panel="saveas"><span>📝</span> Save As</div>
+                <div class="item" data-panel="docx"><span>📘</span> DOCX</div>
                 <div class="item" data-panel="print"><span>🖨️</span> Print</div>
             </div>
             <div class="main-panel" id="fileMainPanel">
@@ -1201,8 +1202,10 @@
     </div>
 
     <!-- ─── HIDDEN FILE INPUT ─── -->
-    <input type="file" id="fileInput" accept=".html,.htm,.txt" style="display:none;" />
+    <input type="file" id="fileInput" accept=".html,.htm,.txt,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;" />
 
+    <script src="https://unpkg.com/html-docx-js/dist/html-docx.js"></script>
+    <script src="https://unpkg.com/mammoth@1.8.0/mammoth.browser.min.js"></script>
     <script>
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // 1. STATE
@@ -1704,19 +1707,61 @@
             runGrammarCheck();
         }
 
-        function saveAs() {
-            const name = prompt('Enter file name:', state.docName);
-            if (!name) return;
-            const content = getDocContent();
-            const blob = new Blob([content], { type: 'text/html' });
+        function downloadBlob(blob, fileName) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = name.endsWith('.html') ? name : name + '.html';
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+
+        function getDocxHtml() {
+            return `<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="utf-8">
+                    <style>
+                        body { font-family: Calibri, Arial, sans-serif; font-size: 12pt; }
+                        table { border-collapse: collapse; width: 100%; }
+                        td, th { border: 1px solid #ccc; padding: 6pt; }
+                        img { max-width: 100%; }
+                    </style>
+                </head>
+                <body>${getDocContent()}</body>
+                </html>`;
+        }
+
+        function exportDocx(name) {
+            if (typeof htmlDocx === 'undefined') {
+                alert('DOCX export is unavailable because the conversion library could not be loaded.');
+                return;
+            }
+            const fileName = name.trim() || 'Document';
+            const finalName = fileName.replace(/\.docx$/i, '') + '.docx';
+            const blob = htmlDocx.asBlob(getDocxHtml());
+            downloadBlob(blob, finalName);
+            updateDocName(fileName.replace(/\.docx$/i, ''));
+            state.isDirty = false;
+        }
+
+        function exportDocxAs() {
+            exportDocx(state.docName);
+        }
+
+        function saveAs() {
+            const name = prompt('Enter file name:', state.docName);
+            if (!name) return;
+            if (/\.docx$/i.test(name)) {
+                exportDocx(name);
+                return;
+            }
+            const content = getDocContent();
+            const blob = new Blob([content], { type: 'text/html' });
+            const finalName = name.endsWith('.html') ? name : name + '.html';
+            downloadBlob(blob, finalName);
             updateDocName(name);
             state.isDirty = false;
         }
@@ -1728,14 +1773,8 @@
             }
             const content = getDocContent();
             const blob = new Blob([content], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = state.docName.endsWith('.html') ? state.docName : state.docName + '.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
+            const finalName = state.docName.endsWith('.html') ? state.docName : state.docName + '.html';
+            downloadBlob(blob, finalName);
             state.isDirty = false;
         }
 
@@ -1747,10 +1786,33 @@
             const file = e.target.files[0];
             if (!file) return;
             const reader = new FileReader();
+            const documentName = file.name.replace(/\.[^.]+$/, '');
+            if (/\.docx$/i.test(file.name)) {
+                if (typeof mammoth === 'undefined') {
+                    alert('DOCX import is unavailable because the conversion library could not be loaded.');
+                    fileInput.value = '';
+                    return;
+                }
+                reader.onload = (ev) => {
+                    mammoth.convertToHtml({ arrayBuffer: ev.target.result })
+                        .then(result => {
+                            setDocContent(result.value);
+                            updateDocName(documentName);
+                            state.isDirty = false;
+                            fileInput.value = '';
+                        })
+                        .catch(error => {
+                            console.error('DOCX import failed:', error);
+                            alert('The DOCX file could not be imported. Please check that it is a valid Word document.');
+                            fileInput.value = '';
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+                return;
+            }
             reader.onload = (ev) => {
-                const content = ev.target.result;
-                setDocContent(content);
-                updateDocName(file.name.replace(/\.[^.]+$/, ''));
+                setDocContent(ev.target.result);
+                updateDocName(documentName);
                 state.isDirty = false;
                 fileInput.value = '';
             };
@@ -1797,6 +1859,7 @@
               <div class="action-row">
                 <button class="btn" id="fileSaveBtn">💾 Save</button>
                 <button class="btn secondary" id="fileSaveAsBtn">📝 Save As...</button>
+                <button class="btn secondary" id="fileExportDocxBtn">📘 Export DOCX</button>
               </div>
             `,
                 saveas: `
@@ -1806,6 +1869,15 @@
               <div class="action-row" style="margin-top:10px;">
                 <button class="btn" id="fileSaveAsConfirm">💾 Save</button>
               </div>
+            `,
+                docx: `
+              <h2>Microsoft Word (DOCX)</h2>
+              <p style="color:#555;margin-bottom:12px;">Move your document between this app and Microsoft Word.</p>
+              <div class="action-row">
+                <button class="btn" id="fileExportDocxPanelBtn">📘 Export DOCX</button>
+                <button class="btn secondary" id="fileImportDocxBtn">📂 Import DOCX</button>
+              </div>
+              <p style="color:#888;font-size:12px;margin-top:12px;">The file downloads as "${state.docName.replace(/"/g, '&quot;')}.docx". Formatting, tables, and images are converted in your browser.</p>
             `,
                 print: `
               <h2>Print</h2>
@@ -1837,6 +1909,12 @@
             if (saveAsBtn) saveAsBtn.addEventListener('click', () => { fileOverlay.classList.remove('open');
                 saveAs(); });
 
+            const exportDocxBtn = document.getElementById('fileExportDocxBtn');
+            if (exportDocxBtn) exportDocxBtn.addEventListener('click', () => {
+                fileOverlay.classList.remove('open');
+                exportDocxAs();
+            });
+
             const saveAsConfirm = document.getElementById('fileSaveAsConfirm');
             if (saveAsConfirm) {
                 saveAsConfirm.addEventListener('click', () => {
@@ -1849,6 +1927,18 @@
                     fileOverlay.classList.remove('open');
                 });
             }
+
+            const exportDocxPanelBtn = document.getElementById('fileExportDocxPanelBtn');
+            if (exportDocxPanelBtn) exportDocxPanelBtn.addEventListener('click', () => {
+                fileOverlay.classList.remove('open');
+                exportDocxAs();
+            });
+
+            const importDocxBtn = document.getElementById('fileImportDocxBtn');
+            if (importDocxBtn) importDocxBtn.addEventListener('click', () => {
+                fileOverlay.classList.remove('open');
+                openDocument();
+            });
 
             const printBtn = document.getElementById('filePrintBtn');
             if (printBtn) printBtn.addEventListener('click', () => { fileOverlay.classList.remove('open');
